@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gartenzaun-Transposition</title>
+  <style>
+    :root{
+      --bg:#eef3f9;
+      --card:#ffffff;
+      --primary:#103b67;
+      --primary2:#1c5c96;
+      --green:#d7f7e8;
+      --green-border:#4fc28d;
+      --yellow:#fff4cc;
+      --border:#d7e2ee;
+      --text:#142033;
+      --muted:#5d6b7c;
+      --cell:#f7f9fc;
+      --shadow:0 10px 30px rgba(31,61,91,.12);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:linear-gradient(180deg,#eef3f9,#f8fbff);
+      color:var(--text);
+      line-height:1.45;
+    }
+    .wrap{max-width:1300px;margin:0 auto;padding:28px}
+    header,.card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:26px 28px;
+      margin-bottom:24px;
+    }
+    header{position:relative;overflow:hidden;padding-right:220px}
+    h1{margin:0 0 8px;color:var(--primary);font-size:2rem}
+    h2{margin:0 0 14px;color:var(--primary);font-size:1.65rem}
+    h3{margin:18px 0 8px;color:var(--primary)}
+    .sub{font-size:1.08rem;color:var(--muted);max-width:980px}
+    .logos{
+      position:absolute;right:22px;top:18px;display:flex;gap:14px;align-items:center;z-index:5
+    }
+    .logos img{height:64px;max-width:110px;object-fit:contain;display:block}
+    .tabs{
+      display:flex;
+      gap:10px;
+      margin-top:22px;
+      flex-wrap:wrap;
+    }
+    .tabBtn{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px 18px;
+      background:#f7f9fc;
+      color:var(--primary);
+      font-weight:800;
+      cursor:pointer;
+      font-size:1rem;
+    }
+    .tabBtn.active{
+      background:var(--primary);
+      color:#fff;
+      border-color:var(--primary);
+    }
+    .panel{display:none}
+    .panel.active{display:block}
+    .controls{
+      display:grid;
+      grid-template-columns:1fr 120px auto;
+      gap:12px;
+      align-items:end;
+      margin-top:16px;
+      max-width:980px;
+    }
+    label{font-weight:700;color:var(--primary);display:block;margin-bottom:6px}
+    input{
+      width:100%;
+      padding:12px 14px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      font-size:1rem;
+      background:#fff;
+    }
+    button.action{
+      border:none;
+      border-radius:12px;
+      padding:13px 18px;
+      background:var(--primary);
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+      font-size:1rem;
+    }
+    .note{
+      background:#f5f8fc;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px 16px;
+      margin:14px 0;
+      color:#34465c;
+    }
+    .warning{
+      background:var(--yellow);
+      border:1px solid #e8c456;
+      border-radius:14px;
+      padding:14px 16px;
+      margin:14px 0;
+      color:#3d3210;
+    }
+    .formula{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin:14px 0;
+    }
+    .box{
+      background:#f8fbff;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px 16px;
+      min-width:220px;
+      font-size:1.05rem;
+    }
+    .box strong{color:var(--primary)}
+    .gridWrap{overflow-x:auto;padding:8px 0}
+    table{
+      border-collapse:separate;
+      border-spacing:6px;
+      width:max-content;
+    }
+    th{
+      background:#eaf2fb;
+      color:#294766;
+      border:1px solid var(--border);
+      border-radius:9px;
+      min-width:74px;
+      height:42px;
+      padding:0 10px;
+    }
+    td{
+      min-width:58px;
+      height:48px;
+      text-align:center;
+      vertical-align:middle;
+      border:1px solid var(--border);
+      border-radius:9px;
+      background:var(--cell);
+      font-weight:800;
+      font-family:"Consolas","Menlo",monospace;
+      font-size:1.12rem;
+    }
+    td.filled{
+      background:var(--green);
+      border-color:var(--green-border);
+      color:#005d47;
+    }
+    .mono{
+      font-family:"Consolas","Menlo",monospace;
+      letter-spacing:.10em;
+      word-break:break-word;
+    }
+    .readline{
+      margin-top:12px;
+      padding:14px;
+      background:#f8fbff;
+      border:1px solid var(--border);
+      border-radius:14px;
+      font-family:"Consolas","Menlo",monospace;
+      font-size:1.05rem;
+      word-break:break-word;
+    }
+    .result{
+      margin-top:14px;
+      padding:18px;
+      border-radius:14px;
+      border:1px solid #a8cdf8;
+      background:#eaf4ff;
+      font-size:1.55rem;
+      font-weight:900;
+      letter-spacing:.04em;
+      word-break:break-word;
+    }
+    .steps{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:14px;
+      margin-top:14px;
+    }
+    .step{
+      background:#f8fbff;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px;
+    }
+    footer{
+      text-align:center;
+      color:var(--muted);
+      margin:28px 0 12px;
+      font-size:.95rem;
+    }
+    footer a{color:var(--primary)}
+    @media(max-width:900px){
+      .logos{position:static;margin-top:12px}
+      .controls{grid-template-columns:1fr}
+      .steps{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Gartenzaun-Transposition</h1>
+    <div class="sub">
+      Interaktive Seite zum Verschlüsseln und Entschlüsseln mit der Gartenzaun-Transposition.
+      Der Schlüssel gibt die Anzahl der Zeilen an.
+    </div>
+    <div class="logos">
+      <img src="FTS_logo.png" alt="Logo" onerror="this.style.display='none'">
+      <img src="QRCode.png" alt="QR-Code" onerror="this.style.display='none'">
+    </div>
+
+    <div class="tabs">
+      <button id="tabEncrypt" class="tabBtn active" onclick="showTab('encrypt')">Verschlüsseln</button>
+      <button id="tabDecrypt" class="tabBtn" onclick="showTab('decrypt')">Entschlüsseln</button>
+    </div>
+  </header>
+
+  <main id="encryptPanel" class="panel active">
+    <section class="card">
+      <h2>Verschlüsseln</h2>
+      <p>
+        Beim Verschlüsseln wird der Klartext zuerst ohne Leerzeichen und Satzzeichen vorbereitet.
+        Danach wird er spaltenweise von oben nach unten in die Tabelle geschrieben.
+        Anschließend liest man die Tabelle zeilenweise aus.
+      </p>
+
+      <div class="controls">
+        <div>
+          <label for="plainInput">Klartext</label>
+          <input id="plainInput" value="Ich freue mich auf die Ferien" />
+        </div>
+        <div>
+          <label for="encryptKey">Schlüssel</label>
+          <input id="encryptKey" type="number" min="2" max="12" value="4" />
+        </div>
+        <button class="action" onclick="renderEncrypt()">Verschlüsseln</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>1. Klartext vorbereiten</h2>
+      <p>Leerzeichen werden entfernt und alle Buchstaben werden großgeschrieben.</p>
+      <div class="formula">
+        <div class="box"><strong>Original:</strong><br><span id="eOriginal"></span></div>
+        <div class="box"><strong>Vorbereitet:</strong><br><span id="eClean" class="mono"></span></div>
+        <div class="box"><strong>Zeichenanzahl:</strong><br><span id="eLen"></span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2. Klartext in die Tabelle schreiben</h2>
+      <p>
+        Der Klartext wird spaltenweise eingetragen: zuerst Zeile 1, dann Zeile 2, dann Zeile 3, dann Zeile 4.
+        Danach beginnt die nächste Spalte.
+      </p>
+      <div id="encryptGrid" class="gridWrap"></div>
+    </section>
+
+    <section class="card">
+      <h2>3. Geheimtext zeilenweise lesen</h2>
+      <p>Jetzt werden die Zeilen von links nach rechts gelesen: zuerst Zeile 1, dann Zeile 2 usw.</p>
+      <div id="encryptReadline" class="readline"></div>
+      <div id="encryptResult" class="result"></div>
+    </section>
+  </main>
+
+  <main id="decryptPanel" class="panel">
+    <section class="card">
+      <h2>Entschlüsseln</h2>
+      <p>
+        Beim Entschlüsseln wird zuerst gezählt, wie viele Zeichen der Geheimtext besitzt.
+        Dann wird durch den Schlüssel geteilt. So erhält man die Anzahl der Spalten.
+      </p>
+
+      <div class="controls">
+        <div>
+          <label for="cipherInput">Geheimtext</label>
+          <input id="cipherInput" value="HETEHAAEGEIAUBUISNUFETBKESGN" />
+        </div>
+        <div>
+          <label for="decryptKey">Schlüssel</label>
+          <input id="decryptKey" type="number" min="2" max="12" value="4" />
+        </div>
+        <button class="action" onclick="renderDecrypt()">Entschlüsseln</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>1. Anzahl der Zeichen bestimmen</h2>
+      <div class="formula">
+        <div class="box"><strong>Geheimtextlänge:</strong><br><span id="dLen">28</span> Zeichen</div>
+        <div class="box"><strong>Schlüssel:</strong><br><span id="dKey">4</span> Zeilen</div>
+        <div class="box"><strong>Spalten:</strong><br><span id="dCols">28 : 4 = 7</span></div>
+      </div>
+      <div id="dWarn" class="warning" style="display:none;"></div>
+    </section>
+
+    <section class="card">
+      <h2>2. Geheimtext zeilenweise eintragen</h2>
+      <p>Der Geheimtext wird zeilenweise in die Tabelle eingetragen.</p>
+      <div id="decryptGrid" class="gridWrap"></div>
+    </section>
+
+    <section class="card">
+      <h2>3. Klartext spaltenweise lesen</h2>
+      <p>Jetzt wird jede Spalte von oben nach unten gelesen.</p>
+      <div id="decryptReadline" class="readline"></div>
+      <div id="decryptResult" class="result"></div>
+      <h3>Mit Leerzeichen beim bekannten Beispiel</h3>
+      <div id="decryptResultSpaces" class="result"></div>
+    </section>
+  </main>
+
+  <section class="card">
+    <h2>Merksatz</h2>
+    <div class="steps">
+      <div class="step"><strong>Verschlüsseln</strong><br>Klartext spaltenweise eintragen und zeilenweise lesen.</div>
+      <div class="step"><strong>Entschlüsseln</strong><br>Geheimtext zeilenweise eintragen und spaltenweise lesen.</div>
+      <div class="step"><strong>Schlüssel</strong><br>Der Schlüssel gibt die Anzahl der Zeilen an.</div>
+    </div>
+  </section>
+
+  <footer>
+    <a href="impressum.html">Impressum</a>
+  </footer>
+</div>
+
+<script>
+function cleanText(s){
+  return (s || "")
+    .toUpperCase()
+    .replace(/Ä/g,"AE")
+    .replace(/Ö/g,"OE")
+    .replace(/Ü/g,"UE")
+    .replace(/ß/g,"SS")
+    .replace(/[^A-Z]/g,"");
+}
+
+function createTable(rows, cols, getter){
+  const table = document.createElement("table");
+
+  const thead = document.createElement("thead");
+  const hr = document.createElement("tr");
+  const corner = document.createElement("th");
+  corner.textContent = "";
+  hr.appendChild(corner);
+
+  for(let c=0;c<cols;c++){
+    const th = document.createElement("th");
+    th.textContent = "Spalte " + (c+1);
+    hr.appendChild(th);
+  }
+
+  thead.appendChild(hr);
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  for(let r=0;r<rows;r++){
+    const tr = document.createElement("tr");
+    const th = document.createElement("th");
+    th.textContent = "Zeile " + (r+1);
+    tr.appendChild(th);
+
+    for(let c=0;c<cols;c++){
+      const td = document.createElement("td");
+      const value = getter(r,c);
+      td.textContent = value || "";
+      if(value) td.className = "filled";
+      tr.appendChild(td);
+    }
+
+    tbody.appendChild(tr);
+  }
+
+  table.appendChild(tbody);
+  return table;
+}
+
+function knownSpaces(text){
+  if(text === "HEUTEGIBTESKEINEHAUSAUFGABEN") return "HEUTE GIBT ES KEINE HAUSAUFGABEN";
+  if(text === "ICHFREUEMICHAUFDIEFERIEN") return "ICH FREUE MICH AUF DIE FERIEN";
+  return text;
+}
+
+function showTab(which){
+  document.getElementById("encryptPanel").classList.toggle("active", which === "encrypt");
+  document.getElementById("decryptPanel").classList.toggle("active", which === "decrypt");
+  document.getElementById("tabEncrypt").classList.toggle("active", which === "encrypt");
+  document.getElementById("tabDecrypt").classList.toggle("active", which === "decrypt");
+}
+
+function buildEncryptArray(plain, rows){
+  const cols = Math.ceil(plain.length / rows);
+  const arr = Array.from({length:rows},()=>Array(cols).fill(""));
+  let pos = 0;
+
+  for(let c=0;c<cols;c++){
+    for(let r=0;r<rows;r++){
+      if(pos < plain.length) arr[r][c] = plain[pos++];
+    }
+  }
+
+  return {arr, cols};
+}
+
+function renderEncrypt(){
+  const original = document.getElementById("plainInput").value;
+  const plain = cleanText(original);
+  const key = Math.max(2, Math.min(12, parseInt(document.getElementById("encryptKey").value || "4",10)));
+
+  document.getElementById("encryptKey").value = key;
+  document.getElementById("eOriginal").textContent = original;
+  document.getElementById("eClean").textContent = plain || "—";
+  document.getElementById("eLen").textContent = plain.length + " Zeichen";
+
+  const {arr, cols} = buildEncryptArray(plain, key);
+
+  const grid = document.getElementById("encryptGrid");
+  grid.innerHTML = "";
+  grid.appendChild(createTable(key, cols, (r,c)=>arr[r][c]));
+
+  let cipher = "";
+  const parts = [];
+  for(let r=0;r<key;r++){
+    for(let c=0;c<cols;c++){
+      if(arr[r][c]){
+        cipher += arr[r][c];
+        parts.push(arr[r][c]);
+      }
+    }
+  }
+
+  document.getElementById("encryptReadline").textContent = parts.join(" → ");
+  document.getElementById("encryptResult").textContent = cipher || "—";
+}
+
+function renderDecrypt(){
+  const cipher = cleanText(document.getElementById("cipherInput").value);
+  const key = Math.max(2, Math.min(12, parseInt(document.getElementById("decryptKey").value || "4",10)));
+
+  document.getElementById("cipherInput").value = cipher;
+  document.getElementById("decryptKey").value = key;
+
+  const len = cipher.length;
+  const exact = len % key === 0;
+  const cols = Math.ceil(len / key);
+
+  document.getElementById("dLen").textContent = len;
+  document.getElementById("dKey").textContent = key;
+  document.getElementById("dCols").textContent = exact ? `${len} : ${key} = ${cols}` : `${len} : ${key} = ${Math.floor(len/key)} Rest ${len%key} → ${cols} Spalten`;
+
+  const warn = document.getElementById("dWarn");
+  if(exact){
+    warn.style.display = "none";
+  } else {
+    warn.style.display = "block";
+    warn.textContent = "Hinweis: Die Zeichenanzahl ist nicht glatt durch den Schlüssel teilbar. Die letzte Spalte ist beim ursprünglichen Klartext nur teilweise gefüllt. Deshalb haben die oberen Zeilen eine Zelle mehr als die unteren Zeilen. Die Seite berücksichtigt das jetzt automatisch.";
+  }
+
+  const arr = Array.from({length:key},()=>Array(cols).fill(""));
+  let pos = 0;
+
+  /*
+    Wichtig bei nicht glatt teilbarer Zeichenanzahl:
+    Beim Verschlüsseln wird spaltenweise von oben nach unten eingetragen.
+    Die letzte Spalte ist dann nur teilweise gefüllt.
+    Deshalb haben nicht alle Zeilen gleich viele Zeichen.
+
+    Beispiel: 26 Zeichen, Schlüssel 4
+    Spalten = 7
+    Rest = 2
+    Zeile 1 und 2 haben 7 Zeichen.
+    Zeile 3 und 4 haben 6 Zeichen.
+  */
+  const rest = len % key;
+  const rowLengths = Array.from({length:key}, (_, r) => {
+    if(exact) return cols;
+    return r < rest ? cols : cols - 1;
+  });
+
+  for(let r=0;r<key;r++){
+    for(let c=0;c<rowLengths[r];c++){
+      if(pos < len) arr[r][c] = cipher[pos++];
+    }
+  }
+
+  const grid = document.getElementById("decryptGrid");
+  grid.innerHTML = "";
+  grid.appendChild(createTable(key, cols, (r,c)=>arr[r][c]));
+
+  let plain = "";
+  const parts = [];
+  for(let c=0;c<cols;c++){
+    for(let r=0;r<key;r++){
+      if(c < rowLengths[r] && arr[r][c]){
+        plain += arr[r][c];
+        parts.push(arr[r][c]);
+      }
+    }
+  }
+
+  document.getElementById("decryptReadline").textContent = parts.join(" → ");
+  document.getElementById("decryptResult").textContent = plain || "—";
+  document.getElementById("decryptResultSpaces").textContent = knownSpaces(plain);
+}
+
+document.getElementById("plainInput").addEventListener("input", renderEncrypt);
+document.getElementById("encryptKey").addEventListener("input", renderEncrypt);
+document.getElementById("cipherInput").addEventListener("input", renderDecrypt);
+document.getElementById("decryptKey").addEventListener("input", renderDecrypt);
+
+renderEncrypt();
+renderDecrypt();
+</script>
+</body>
+</html>
